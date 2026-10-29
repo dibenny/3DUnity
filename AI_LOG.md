@@ -189,6 +189,18 @@ C# 这块是最容易翻车的：写 `public string CreatedAt;` 的话 `JsonUtil
 | 4 | **关掉 Go 服务后刷新** | 顶部红色错误条「无法连接后端服务，请确认 Go 服务是否启动。」+「重试」按钮，**页面没有白屏**，空状态文案照常显示 |
 | 5 | 重启 Go 后点「重试」 | 列表恢复 |
 
+### Unity 端（真实引擎，2026-10-29 装上团结引擎 1.11.0 之后）
+
+| # | 场景 | 结果 |
+|---|---|---|
+| 1 | 首次打开工程 | `Loading completed in 17.905 seconds`，场景正常打开 |
+| 2 | **真实引擎编译** | `Assembly-CSharp.dll` / `Assembly-CSharp-Editor.dll` 生成，**0 error 0 warning** |
+| 3 | 手写的场景 YAML | 引擎能加载 `Main.unity`，根物体 1 个（SceneBootstrap） |
+| 4 | 中文字体 | `PingFang SC`，`HasCharacter('巡') == true` |
+| 5 | 数据契约反序列化 | `JsonUtility` 解析出的字段与 Go 端完全一致 |
+| 6 | 编辑器内打后端 | `/api/health` → HTTP 200 `{"status":"ok"}` |
+| 7 | 一键自检（batchmode） | **4 项通过, 0 项失败** |
+
 ### 静态检查
 
 | 工具 | 结果 |
@@ -200,65 +212,80 @@ C# 这块是最容易翻车的：写 `public string CreatedAt;` 的话 `JsonUtil
 | `vite build` | 成功，148 KB（gzip 48 KB） |
 | `tools/csharp-verify/verify.sh` | **13 个 C# 文件，0 error 0 warning**（warning 也当 error） |
 
+> 在真正装上 Unity 之前，`tools/csharp-verify/`（手写 Unity API 桩 + .NET SDK 8 的 Roslyn）
+> 是当时唯一的验证手段。**它抓到了两个会让 Unity 直接编译失败的 bug**：
+>
+> | Bug | 编译器报错 | 真实原因 |
+> |---|---|---|
+> | `camera.clearFlags = CameraClearFlags.SolidColor;` | `CS0117: “CameraClearFlags”未包含“SolidColor”的定义` | 真实枚举只有 `Skybox` / `Color` / `Depth` / `Nothing`，**没有 SolidColor** |
+> | `SceneBootstrap.BuildUI()` 里用了 `formUI` | `CS0103: 当前上下文中不存在名称“formUI”` | 这个字段根本没声明，`formUI = ...` 直接编译不过 |
+>
+> 这两个如果留到 Unity 里才炸，就是「打开工程一片红」，很伤。
+> 它抓不到的是：Unity 真实 API 是否存在、运行时行为、渲染效果。
+
 ---
 
 ## 5. 验收清单对照
 
-见 README 第 6 节。17 项里 **16 项已实测通过**，剩下 1 项（Unity 端交互）没法在本机验证，原因见下一节。
+见 README 第 7 节。17 项里 **10 项已实测通过**（Go 端 7 项 + React 端 3 项，全是 curl / 浏览器真跑出来的）。
+
+7 项 Unity 交互标 🟡，但状态比之前前进了一大步：**代码已经在真实引擎里编译通过**、
+场景正常加载、一键自检 4/4 全过。剩下的只是 Play 模式下的实际点击还没人手动做过
+（点 Play 需要人在编辑器里操作，本机没给终端辅助功能权限，AppleScript 驱动不了 Unity 菜单）。
 
 ---
 
 ## 6. 没验证的部分（重要，别当成已交付）
 
-### Unity 运行时完全没跑过
+### ✅ 后来真的把 Unity 装上跑起来了（2026-10-29 晚）
 
-**本机没装 Unity**（`/Applications/Unity/Hub/Editor` 不存在），所以下面这些只是静态推理，不是实测：
+一开始本机确实没有 Unity，只能靠 Roslyn 桩静态检查。后来装上了**团结引擎 1.11.0**
+（= Unity 2022.3.62t17），于是静态推断变成了真实引擎验证：
 
-- 场景里的地面/墙壁/设备是否真的渲染出来；
-- 中文标签（`TextMesh` + 系统动态字体）是否正常显示；
-- `EventSystem.current.IsPointerOverGameObject()` 的 UI 拦截是否真的生效；
-- 射线点击是否真的命中设备；
-- 标记的脉动动画、表单弹出/关闭动画；
-- `CharacterController` 移动和右键拖动转向的手感。
+| 验证项 | 结果 |
+|---|---|
+| 许可证 | `No ULF license found` → 激活个人版后 → `Found 1 entitlement groups`（Unity Personal） |
+| 工程加载 | `Loading completed in 17.905 seconds`，`Scene opening time: 0.288 seconds` |
+| **真实引擎编译** | `Assembly-CSharp.dll` / `Assembly-CSharp-Editor.dll` 生成，**0 error 0 warning** |
+| 手写场景 YAML | 引擎能正常加载 `Main.unity`，根物体 1 个（SceneBootstrap） |
+| 中文字体 | `PingFang SC`，`HasCharacter('巡') == true` → 界面中文不会变方块 |
+| 数据契约 | `JsonUtility.FromJson<IssueDto>` 解析出的字段与 Go 端完全一致 |
+| 后端连通 | 编辑器内 `WebRequest` 打到 `http://127.0.0.1:8080/api/health` → HTTP 200 |
 
-### 但做了一个替代验证：C# 编译检查
-
-装不了 Unity（`brew install mono` 需要完整 Xcode，失败），改用 .NET SDK 8 的 Roslyn：
-
-`tools/csharp-verify/` 里手写了一份覆盖本项目用到的 Unity API 桩（`UnityStubs.cs`，约 600 行），
-然后用 `dotnet build` 编译「桩 + Assets/Scripts 全部 C#」，并把 **warning 也当 error**。
+自检工具也补了 **batchmode 分支**（`Application.isBatchMode` 时不弹 `DisplayDialog`，
+改为把报告写进 `selfcheck.txt`；并主动 `OpenScene` —— 因为 batchmode 默认不开场景，
+不主动开的话场景检查会误报失败）：
 
 ```bash
-bash tools/csharp-verify/verify.sh
-# ✅ 编译通过：13 个 C# 文件，0 error 0 warning
+/Applications/Tuanjie/Tuanjie.app/Contents/MacOS/Tuanjie \
+  -batchmode -nographics -quit \
+  -projectPath /Users/benny/3DUnity/unity/InspectionDemo \
+  -executeMethod InspectionDemo.EditorTools.InspectionDemoTools.RunSelfCheck \
+  -logFile /tmp/selfcheck.log
+# → 结果: 4 项通过, 0 项失败
 ```
 
-**这个检查抓到了两个会让 Unity 直接编译失败的 bug：**
+### 仍然没法自己验证的：Play 模式下的交互手感
 
-| Bug | 编译器报错 | 真实原因 |
-|---|---|---|
-| `camera.clearFlags = CameraClearFlags.SolidColor;` | `CS0117: “CameraClearFlags”未包含“SolidColor”的定义` | 真实枚举只有 `Skybox` / `Color` / `Depth` / `Nothing`，**没有 SolidColor** |
-| `SceneBootstrap.BuildUI()` 里用了 `formUI` | `CS0103: 当前上下文中不存在名称“formUI”` | 这个字段根本没声明，`formUI = ...` 直接编译不过 |
+编辑器已经开着，后端也在跑，但**点 Play 需要人按**（本机没给终端辅助功能权限，
+AppleScript 驱动不了 Unity 菜单），所以下面这些还是「代码逻辑正确 + 未实跑」：
 
-这两个如果留到 Unity 里才炸，就是「打开工程一片红」，很伤。
+- 场景里的地面/墙壁/设备是否真的渲染出来（运行时生成，不是预置）；
+- `EventSystem.current.IsPointerOverGameObject()` 的 UI 拦截在真实点击下是否生效；
+- 射线点击是否真的命中设备；
+- 标记的脉动动画、表单弹出/关闭动画；
+- `CharacterController` 移动和右键拖动转向的手感；
+- 提交表单 → Go 后端 → React 列表刷新的三端联动。
 
-**它抓不到什么**：Unity 真实 API 是否存在（比如桩里写了个 Unity 2022 其实没有的成员，这里就查不出来）、
-运行时行为、渲染效果。所以它只是「代码自身没有写错」的保证，不等于「能跑」。
-
-### 另外做的静态保证
-
-- 场景 YAML 里 `m_Script` 的 GUID 与 `SceneBootstrap.cs.meta` 的 GUID 做了程序化比对，一致；
-- `EditorBuildSettings.asset` 里的场景 GUID 与 `Main.unity.meta` 一致；
-- 所有的 `AddComponent` 顺序检查过（`InspectionManager.Awake` → `Instance` 赋值 → `RaycastClickHandler` 才可能用到）；
-- 事件绑定（`OnSubmitRequested` / `OnCancelRequested`）检查过不会空指针。
+这部分 README 第 6 节给了一份逐条验收清单，对着点一遍就能确认。
 
 ### 演示视频没录
 
-录制需要在 Unity Editor 里手动录 Game view，本机没有 Unity。README 第 9 节留了位置。
+录制需要在 Unity Editor 里手动录 Game view。README 第 9 节留了位置。
 
-### 为此补了两个 Editor 工具（`Assets/Editor/InspectionDemoTools.cs`）
+### 两个 Editor 工具（`Assets/Editor/InspectionDemoTools.cs`）
 
-既然没法自己跑，就把「要盯的点」变成机器可查的：
+把「要盯的点」变成机器可查的：
 
 - **Tools → 巡检 Demo → 一键自检**
   自动检查并打印报告：场景是否就绪、运行时层级（Ground/Player/Camera/Canvas/EventSystem）齐不齐、

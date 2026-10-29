@@ -148,24 +148,61 @@ assigned update failed. Details: Token not found in cache
 4. 完事。之后启动编辑器就正常了
 
 > 个人版**免费、无名额限制**，但**通常只能激活 1 台设备**。
-> 提示「许可证上限」说明别处激活过 → 去 <https://license.tuanjiemanual.cn>「取消激活」再申请。
+> 提示「许可证上限」说明别处激活过 → 去 <https://license.tuanjie.cn>「取消激活」再申请。
+
+**方案 A'：Hub 命令行一条命令激活（最省事，实测 20 秒搞定）**
+
+不用点 UI，Hub 自带 CLI（路径随安装方式不同，先 `find /Applications -name tuanjie -type f 2>/dev/null | grep hub` 找）：
+
+```bash
+# 登录（没登录过会拉起浏览器做设备授权）
+HUBCLI="/Applications/Tuanjie Cowork.app/Contents/MacOS/hub/tuanjie"   # 按你的实际路径改
+"$HUBCLI" auth login
+
+# 领取 + 激活免费个人版
+"$HUBCLI" license personal
+# → Personal license activated.
+
+# 验证
+"$HUBCLI" auth status          # → Logged in as <用户名>
+/Applications/Tuanjie/Tuanjie.app/Contents/Frameworks/TuanjieLicensingClient.app/Contents/MacOS/Tuanjie.Licensing.Client \
+  --showEntitlements            # → Product Name: Unity Personal
+```
+
+激活成功后许可证落在 **`/Library/Application Support/Tuanjie/Tuanjie_lic.ulf`**。
+
+> 排查时的关键区分：
+> - `Token not found in cache` → **没登录**，跟许可证本身无关
+> - `No licenses were found`（`--showEntitlements`）→ **登录了但账号名下没有任何权益**，
+>   这时候 `--activate-all` / `activateAllEntitlementBasedLicenses` 会返回空数组 `[]`。
+>   个人版不属于「订阅型权益」，得用 `license personal` 单独领。
+> - `Found 1 entitlement groups` → 成了，编辑器不再报 License error。
 
 **方案 B：不装 Hub，手动激活（Hub 出问题时用这个）**
 
 ```bash
-# 1. 生成激活请求文件（.alf），会在当前目录生成 Tuanjie_v2022.3.alf
-cd ~/Downloads
-/Applications/Tuanjie/Tuanjie.app/Contents/MacOS/Tuanjie \
-  -batchmode -createManualActivationFile -logfile
+# 1. 生成激活请求文件（.alf）
+#    编辑器弹 License error 时会自动生成一份；也可以手动生成：
+#    版本号要写对，否则服务端可能拒收
+/Applications/Tuanjie/Tuanjie.app/Contents/Frameworks/TuanjieLicensingClient.app/Contents/MacOS/Tuanjie.Licensing.Client \
+  --generate-alf-request \
+  --activation-product-name "Tuanjie" \
+  --activation-product-version "2022.3.62t17" \
+  --activation-file-path "$HOME/Downloads/Tuanjie.alf"
 
-# 2. 浏览器打开 https://license.tuanjiemanual.cn/manual
-#    Browse 上传刚生成的 .alf → 选「个人版许可证」→ 提交
-#    下载 Tuanjie_v2022.3.ulf
+# 2. 浏览器打开 https://license.tuanjie.cn/manual
+#    ⚠️ 这一步第一关是 Unity ID 登录，没登录的话上传/提交按钮是灰的
+#    登录后 → Browse 上传刚生成的 .alf → 选「个人版许可证」→ 提交
+#    下载 .ulf（文件名形如 Tuanjie_v2022.3.62t17.ulf）
 
 # 3. 导入许可证
 /Applications/Tuanjie/Tuanjie.app/Contents/MacOS/Tuanjie \
-  -batchmode -manualLicenseFile "$HOME/Downloads/Tuanjie_v2022.3.ulf" -logfile
+  -batchmode -manualLicenseFile "$HOME/Downloads/Tuanjie_v2022.3.62t17.ulf" -logfile
 ```
+
+> **别再用 `https://license.tuanjiemanual.cn`** —— 这个域名**不存在**，DNS 直接解析失败，
+> 浏览器会报「无法访问此网站」。团结引擎的许可证站点是 `https://license.tuanjie.cn`。
+> （国际版 Unity 的手动激活页是 `https://license.unity3d.com/manual`，两个站点不是一回事。）
 
 **排查用的日志**
 
@@ -174,10 +211,13 @@ cd ~/Downloads
 | Editor 日志 | `~/Library/Logs/Tuanjie/Editor.log` |
 | 许可证客户端日志 | `~/Library/Logs/Tuanjie/Tuanjie.Licensing.Client.log` |
 | Hub 日志 | `~/Library/Application Support/TuanjieHub/logs` |
-| 许可证管理页 | <https://license.tuanjiemanual.cn> |
+| 许可证管理页 | <https://license.tuanjie.cn> |
+| 手动激活页 | <https://license.tuanjie.cn/manual> |
 
-> 用国际版 Unity 时注意：`ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`。
-> 你的版本比它新 → 自动升级工程，正常；比它旧 → 提示「工程由更高版本创建」，先升一下。
+> 用国际版 Unity 时注意：`ProjectSettings/ProjectVersion.txt` 现在写的是
+> `2022.3.62t17`（团结引擎 1.11.0 打开后自动改写的，带 `t` 后缀是团结专属版本号）。
+> 换国际版 Unity 打开时会提示「工程由更高版本创建」→ 先用国际版打开一次让它升级，
+> 或手动把 `m_EditorVersion` 改成你本地的国际版版本号。
 
 **第 2 步：打开工程**
 
@@ -479,7 +519,37 @@ Unity 内置的 `LegacyRuntime.ttf` 没有 CJK 字形，直接渲染中文会变
 
 ---
 
-## 6. C# 编译检查（本机没装 Unity 时的替代验证）
+## 6. Unity 侧的两层验证
+
+### 6.1 在真实引擎里编译 + 加载（本机已装团结引擎 2022.3.62t17）
+
+```bash
+/Applications/Tuanjie/Tuanjie.app/Contents/MacOS/Tuanjie \
+  -batchmode -nographics -quit \
+  -projectPath "$PWD/unity/InspectionDemo" \
+  -executeMethod InspectionDemo.EditorTools.InspectionDemoTools.RunSelfCheck \
+  -logFile /tmp/selfcheck.log
+
+cat unity/InspectionDemo/selfcheck.txt
+```
+
+```
+[通过] 场景: Main（根物体 1 个）
+[通过] 中文字体: 字体 PingFang SC，含中文字形
+[通过] 数据契约（JsonUtility）: 字段名与 Go 完全对得上
+[通过] 后端连通: http://127.0.0.1:8080/api/health → HTTP 200 {"status":"ok",...}
+
+结果: 4 项通过, 0 项失败
+```
+
+> 两个容易踩的点：
+> - batchmode 下 Unity **默认不打开场景**，活动场景是空的 untitled。
+>   所以自检工具在 batchmode 分支里会主动 `OpenScene("Assets/Scenes/Main.unity")`，
+>   不然场景检查会误报失败。
+> - batchmode 下 `EditorUtility.DisplayDialog` 会卡住流程，
+>   所以工具在 batchmode 下改为把报告写进 `selfcheck.txt`。
+
+### 6.2 Roslyn 编译检查（装 Unity 之前的替代验证，现在仍然好用）
 
 ```bash
 bash tools/csharp-verify/verify.sh
@@ -491,7 +561,8 @@ bash tools/csharp-verify/verify.sh
 **它能抓什么**：拼写错误、方法签名对不上、类型不兼容、漏声明的字段、未定义的名字。
 **它抓不到什么**：Unity 真实 API 是否存在、运行时行为、渲染效果。
 
-这个工具在上线前抓到了两个会让 Unity 直接编译失败的 bug：
+好处是**秒级**、不用开编辑器，改完 C# 立刻能验。上面那个 `CameraClearFlags.SolidColor`
+的 bug 就是它抓出来的：
 
 | Bug | 症状 |
 |---|---|
@@ -505,7 +576,8 @@ bash tools/csharp-verify/verify.sh
 
 ## 7. 验收清单
 
-状态说明：✅ = **已实测通过**；🟡 = 代码已写且编译通过，但**没在 Unity 里跑过**（本机没装 Unity）。
+状态说明：✅ = **已实测通过**；🟡 = 代码已写、**在真实引擎里编译通过、场景能正常加载**，
+但**Play 模式下的交互还没人手动点过**（点 Play 需要人在编辑器里操作）。
 
 | # | 验收项 | 状态 | 怎么验 / 怎么查 |
 |---|---|---|---|
@@ -527,9 +599,13 @@ bash tools/csharp-verify/verify.sh
 | 16 | React 可切换 open/in_progress/resolved | ✅ | 下拉框改状态 → UI 立即更新 → `curl` 确认后端也是新值 |
 | 17 | React 后端不可用时显示错误而不是白屏 | ✅ | 关掉 Go 服务刷新 → 红色错误条 +「重试」，页面结构完整 |
 
-Unity 那 7 项虽然标 🟡，但**全部通过 Roslyn 编译检查**（`tools/csharp-verify/verify.sh`，0 error 0 warning），
-其中 2 个会让 Unity 编译失败的 bug 已经被这个检查抓出来修掉了。
-剩下的只有「实际跑起来是什么样」需要你在 Editor 里看一眼。
+Unity 那 7 项的**代码层面已经过了真实引擎**（团结引擎 2022.3.62t17：0 error 0 warning、
+`Main.unity` 正常加载、中文字体含「巡」字形、`JsonUtility` 契约对得上、编辑器内能打到后端），
+详见第 6 节。**只差 Play 模式里的实际点击**——按上面第 1 节的六步走，在 Game 视图里
+对着点一遍就能把这 7 项从 🟡 翻成 ✅。
+
+编辑器里也可以直接跑 **Tools → 巡检 Demo → 一键自检**，
+它会一次性把「场景 / 运行时层级 / 两个单例 / 字体 / 数据契约 / 后端连通」全查一遍。
 
 ---
 

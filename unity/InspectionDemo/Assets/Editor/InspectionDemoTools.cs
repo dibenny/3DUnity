@@ -29,6 +29,16 @@ namespace InspectionDemo.EditorTools
         [MenuItem(MenuRoot + "一键自检")]
         public static void RunSelfCheck()
         {
+            // batchmode 下 Unity 默认不开场景（活动场景是空的 untitled），
+            // 这里主动打开 Main，顺带验证手写的场景文件能否被引擎正常加载
+            if (Application.isBatchMode)
+            {
+                var mainScene = EditorSceneManager.OpenScene(
+                    "Assets/Scenes/Main.unity", OpenSceneMode.Single);
+                Debug.Log($"[SelfCheck] opened scene '{mainScene.name}', " +
+                          $"roots={mainScene.GetRootGameObjects().Length}");
+            }
+
             var report = new StringBuilder();
             int passed = 0;
             int failed = 0;
@@ -161,6 +171,16 @@ namespace InspectionDemo.EditorTools
 
             string text = report.ToString();
             Debug.Log(text);
+
+            // batchmode（命令行自检）下不能弹窗，报告写文件
+            if (Application.isBatchMode)
+            {
+                string outPath = Path.Combine(
+                    Directory.GetParent(Application.dataPath)?.FullName ?? ".", "selfcheck.txt");
+                File.WriteAllText(outPath, text);
+                Debug.Log($"[SelfCheck] report written to {outPath}");
+                return;
+            }
 
             if (failed == 0)
             {

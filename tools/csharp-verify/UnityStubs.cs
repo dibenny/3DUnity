@@ -359,6 +359,7 @@ namespace UnityEngine
     {
         public static string unityVersion { get { return ""; } }
         public static bool isPlaying { get { return false; } }
+        public static bool isBatchMode { get { return false; } }
         public static bool isEditor { get { return true; } }
         public static string dataPath { get { return ""; } }
     }
@@ -453,6 +454,7 @@ namespace UnityEditor.SceneManagement
 
     public enum NewSceneSetup { EmptyScene, DefaultGameObjects }
     public enum NewSceneMode { Single, Additive }
+    public enum OpenSceneMode { Single, Additive, SingleCommitted }
 
     public static class EditorSceneManager
     {
@@ -461,6 +463,7 @@ namespace UnityEditor.SceneManagement
         public static bool SaveScene(Scene scene) { return true; }
         public static bool SaveScene(Scene scene, string destinationPath) { return true; }
         public static Scene OpenScene(string path) { return new Scene(); }
+        public static Scene OpenScene(string path, OpenSceneMode mode) { return new Scene(); }
     }
 }
 

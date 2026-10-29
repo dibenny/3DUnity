@@ -42,6 +42,9 @@ server/inspection-server
 tools/csharp-verify/bin/
 tools/csharp-verify/obj/
 
+# ---------- 自检工具产物 ----------
+unity/InspectionDemo/selfcheck.txt
+
 # ---------- 操作系统 ----------
 .DS_Store
 Thumbs.db

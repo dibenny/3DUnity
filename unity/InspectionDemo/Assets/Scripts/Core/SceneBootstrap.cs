@@ -24,7 +24,7 @@ namespace InspectionDemo
         private InputField serverInput;
         private Text healthText;
         private Text toastText;
-
+        private GameObject toastPanel;
         private void Awake()
         {
             BuildLighting();
@@ -198,10 +198,11 @@ var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), t
 
             formUI = gameObject.AddComponent<IssueFormUI>();
             formUI.Build(canvasGo.transform);
-
+            BuildToast(canvasGo.transform);
             manager.apiClient = apiClient;
             manager.formUI = formUI;
             manager.toastText = toastText;
+            manager.toastPanel = toastPanel;
 
             formUI.OnSubmitRequested += HandleFormSubmit;
             formUI.OnCancelRequested += HandleFormCancel;
@@ -246,11 +247,6 @@ var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), t
             UIFactory.Place(testButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(14f, -114f), new Vector2(170f, 28f));
             testButton.onClick.AddListener(HandleTestClicked);
-
-            toastText = UIFactory.CreateText("Toast", hud.transform, "", 12,
-                TextAnchor.MiddleLeft, GameConfig.TextDimColor);
-            UIFactory.Place(toastText.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(192f, -114f), new Vector2(224f, 28f));
         }
 
         private void BuildHintBar(Transform canvasTransform)
@@ -265,6 +261,18 @@ var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), t
             UIFactory.Stretch(hint.rectTransform);
         }
 
+        private void BuildToast(Transform canvasTransform)
+        {
+            var panel = UIFactory.CreatePanel("ToastPanel", canvasTransform, new Color(0.04f, 0.05f, 0.06f, 0.95f));
+            toastPanel = panel.gameObject;
+            UIFactory.Place(panel.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
+                new Vector2(0f, 64f), new Vector2(720f, 48f));
+
+            toastText = UIFactory.CreateText("ToastText", panel.transform, "", 16,
+                TextAnchor.MiddleCenter, GameConfig.OkColor);
+            UIFactory.Stretch(toastText.rectTransform, 16f, 0f, 16f, 0f);
+            toastPanel.SetActive(false);
+        }
         // ------------------------------------------------------------------
         // 交互回调
         // ------------------------------------------------------------------

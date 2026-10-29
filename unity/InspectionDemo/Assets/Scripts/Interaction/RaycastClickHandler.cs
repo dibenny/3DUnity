@@ -51,7 +51,7 @@ namespace InspectionDemo
                 return;
             }
 
-            manager.PlaceMarker(hit.point);
+            manager.PlaceMarker(hit.point, hit.normal);
         }
     }
 }

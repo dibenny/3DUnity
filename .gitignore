@@ -53,3 +53,6 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Runtime verification output
+unity/**/runtime-selfcheck.txt

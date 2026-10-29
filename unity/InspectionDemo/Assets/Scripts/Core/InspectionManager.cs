@@ -40,10 +40,12 @@ namespace InspectionDemo
         public IssueApiClient apiClient;
         public IssueFormUI formUI;
         public Text toastText;
+        public GameObject toastPanel;
 
         private IssueMarker currentMarker;
         private float stateResetTime;
         private bool resetStateLater;
+        private Coroutine toastRoutine;
 
         private void Awake()
         {
@@ -64,12 +66,17 @@ namespace InspectionDemo
         /// <summary>在点击位置放标记，并打开表单。</summary>
         public void PlaceMarker(Vector3 point)
         {
+            PlaceMarker(point, Vector3.up);
+        }
+
+        public void PlaceMarker(Vector3 point, Vector3 surfaceNormal)
+        {
             if (State != InspectionState.Idle) return;
 
             // 只允许一个临时标记，重复点击时先把上一个清掉
             ClearCurrentMarker();
 
-            currentMarker = IssueMarker.Create(point);
+            currentMarker = IssueMarker.Create(point, surfaceNormal);
             State = InspectionState.MarkerPlaced;
             State = InspectionState.FormOpen;
 
@@ -215,6 +222,16 @@ namespace InspectionDemo
             if (toastText == null) return;
             toastText.text = message;
             toastText.color = isError ? GameConfig.DangerColor : GameConfig.OkColor;
+            if (toastPanel != null) toastPanel.SetActive(true);
+            if (toastRoutine != null) StopCoroutine(toastRoutine);
+            toastRoutine = StartCoroutine(HideToastLater());
+        }
+
+        private IEnumerator HideToastLater()
+        {
+            yield return new WaitForSeconds(2.8f);
+            if (toastPanel != null) toastPanel.SetActive(false);
+            toastRoutine = null;
         }
 
         private void ClearCurrentMarker()

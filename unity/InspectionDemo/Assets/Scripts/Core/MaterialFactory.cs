@@ -17,18 +17,18 @@ namespace InspectionDemo
         /// <summary>优先用 Resources 里的材质（打包时最稳），否则退回 Shader.Find。</summary>
         public static Material CreateOpaque(Color color, float metallic = 0f, float smoothness = 0.12f)
         {
-            var material = Resources.Load<Material>(FallbackMaterialResource);
-            if (material == null)
+            var template = Resources.Load<Material>(FallbackMaterialResource);
+            Material material;
+            if (template != null && template.shader != null && template.shader.name != "Hidden/InternalErrorShader")
             {
-                var shader = LitShader();
-                material = shader != null ? new Material(shader) : new Material(Shader.Find("Unlit/Color"));
+                material = new Material(template);
             }
             else
             {
-                // Resources.Load 拿到的是共享资源实例，new 一份避免互相改颜色
-                material = new Material(material);
+                var shader = LitShader();
+                if (shader == null) shader = Shader.Find("Unlit/Color");
+                material = new Material(shader);
             }
-
             SetColor(material, color);
             if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", metallic);
             if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", smoothness);

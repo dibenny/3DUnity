@@ -22,17 +22,17 @@ namespace InspectionDemo
         private float phase;
 
         /// <summary>在指定世界坐标生成一个标记。</summary>
-        public static IssueMarker Create(Vector3 position, Transform parent = null)
+        public static IssueMarker Create(Vector3 position, Vector3 surfaceNormal, Transform parent = null)
         {
             var root = new GameObject("IssueMarker");
             if (parent != null) root.transform.SetParent(parent, false);
             root.transform.position = position;
-
+            Vector3 normal = surfaceNormal.sqrMagnitude < 0.001f ? Vector3.up : surfaceNormal.normalized;
             // 球体
             var coreGo = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             coreGo.name = "Core";
             coreGo.transform.SetParent(root.transform, false);
-            coreGo.transform.localPosition = Vector3.up * (BaseSize * 0.9f);
+            coreGo.transform.localPosition = Vector3.up * (BaseSize * 0.9f) + normal * (BaseSize * 0.75f);
             coreGo.transform.localScale = Vector3.one * BaseSize;
             RemoveCollider(coreGo);
             coreGo.GetComponent<Renderer>().material =
@@ -42,7 +42,7 @@ namespace InspectionDemo
             var stemGo = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             stemGo.name = "Stem";
             stemGo.transform.SetParent(root.transform, false);
-            stemGo.transform.localPosition = new Vector3(0f, BaseSize * 0.45f, 0f);
+            stemGo.transform.localPosition = Vector3.up * (BaseSize * 0.45f) + normal * (BaseSize * 0.375f);
             stemGo.transform.localScale = new Vector3(0.025f, BaseSize * 0.45f, 0.025f);
             RemoveCollider(stemGo);
             stemGo.GetComponent<Renderer>().material =

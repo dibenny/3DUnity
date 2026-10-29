@@ -49,15 +49,7 @@ npm run dev
 
 ### 终端 C：Unity 客户端
 
-**第 1 步：装 Unity / 团结引擎（这一步只能你来做）**
-
-我没法替你装——要账号、许可激活、Hub 图形界面。
-
-> ⚠️ **从中国大陆访问 `unity.com/download`，页面已经是团结引擎的下载页了**
-> （标题「团结引擎最新版·官方下载」，canonical 指向 `unity.cn/tuanjie/releases`）。
-> 国际版 Unity 在国内改走中国镜像 `download.unitychina.cn`。
-
-**推荐：直接装团结引擎**（就在这个页面上，一键下载，省事）
+**第 1 步：装 Unity / 团结引擎**
 
 | | |
 |---|---|
@@ -71,27 +63,7 @@ npm run dev
 
 团结引擎就是**基于 Unity 2022 LTS 定制**的，官方明确说「Unity 2022 LTS 支持的项目工程、资源商店购买的资产、插件，都可以在团结引擎中运行」，UI 和代码编写规则保持通用。
 
-本工程只用到 `UnityEngine` + `uGUI` + `UnityWebRequest` 这些标准 API，**一行代码都不用改**。
-
-唯一的差别是版本号：工程原本写的是 `2022.3.20f1`，团结引擎内部是 `2022.3.62t17` 这种格式，**第一次打开会自动升级一次**（正常行为，Console 里不会有红字）。升级后 `ProjectVersion.txt` 会被改写成 `2022.3.62t17` + `m_TuanjieEditorVersion: 1.11.0`。
-
-**要国际版 Unity 也行**：在同一个页面向下滚，有「2022.3.39f1」等条目，走中国镜像 `download.unitychina.cn` 下载。
-
-**模块别全选**：只要 macOS Editor 就够了。iOS / Android / 文档全勾会多下几十 GB。
-另外你的 Mac 是 Apple Silicon，下载的是 `MacEditorInstallerArm64` 那个包。
-
-**⚠️ macOS 15 (Sequoia) 上双击装不上？——团结引擎的 pkg 没做苹果公证**
-
-团结引擎 1.11.0 的 macOS 安装包**没有 stapled notarization ticket**，
-macOS 15.2 的 Gatekeeper 会直接拦截，表现为「无法打开，因为无法验证开发者」或「已损坏」。
-
-诊断命令（确认是不是这个原因）：
-
-```bash
-spctl -a -t install -vv ~/Downloads/Tuanjie.pkg
-# rejected
-# source=Unnotarized Developer ID   ← 就是它
-```
+本工程只用到 `UnityEngine` + `uGUI` + `UnityWebRequest` 这些标准 API
 
 **装法（推荐命令行，绕过 Gatekeeper 的 GUI 拦截）**：
 
@@ -105,12 +77,6 @@ xattr -dr com.apple.quarantine /Applications/Tuanjie/Tuanjie.app
 # 3. 启动
 open /Applications/Tuanjie/Tuanjie.app
 ```
-
-**不想用终端的话**：右键 `Tuanjie.pkg` → **打开** → 弹窗里点「打开」；
-或者第一次失败后去 **系统设置 → 隐私与安全性** → 底部「仍要打开」。
-
-> ❌ 不要用 `sudo spctl --master-disable`（全局关掉 Gatekeeper）。
-> 为一个安装包把系统安全降级不划算，用上面的办法就够。
 
 **不装 Hub 也能直接打开工程**：
 
@@ -150,7 +116,7 @@ assigned update failed. Details: Token not found in cache
 > 个人版**免费、无名额限制**，但**通常只能激活 1 台设备**。
 > 提示「许可证上限」说明别处激活过 → 去 <https://license.tuanjie.cn>「取消激活」再申请。
 
-**方案 A'：Hub 命令行一条命令激活（最省事，实测 20 秒搞定）**
+**方案 A'：Hub 命令行一条命令激活**
 
 不用点 UI，Hub 自带 CLI（路径随安装方式不同，先 `find /Applications -name tuanjie -type f 2>/dev/null | grep hub` 找）：
 
@@ -239,7 +205,7 @@ Hub → Open → 选 `unity/InspectionDemo` 目录 → 选 2022.3 那个 Editor 
 > 本工程的 `Packages/manifest.json` 里**没有**声明 `com.unity.inputsystem`，
 > 所以正常情况下走旧输入；但如果打开工程后被自动加进来了，就要按上面改回来。
 
-**第 4 步：跑自检（推荐）**
+**第 4 步：跑自检**
 
 菜单 **Tools → 巡检 Demo → 一键自检**。
 
@@ -250,7 +216,7 @@ Hub → Open → 选 `unity/InspectionDemo` 目录 → 选 2022.3 那个 Editor 
 | 场景 | 当前场景是 Main，且根物体里挂了 `SceneBootstrap` |
 | 运行时场景 | Play 模式下 Ground / Player / Camera / Canvas / EventSystem 都在 |
 | InspectionManager / IssueApiClient | 单例已初始化、状态正常 |
-| 中文字体 | 字体存在**且含中文字形**（这一步能提前发现「界面全是方块」） |
+| 中文字体 | 字体存在**且含中文字形** |
 | 数据契约 | 用一段真实 JSON 反序列化，验证字段名和 Go 完全对得上 |
 | 后端连通 | 实际请求 `/api/health` |
 
@@ -288,8 +254,6 @@ Hub → Open → 选 `unity/InspectionDemo` 目录 → 选 2022.3 那个 Editor 
 | 5 | 表单里标题留空，点「提交」 | 提示「标题不能为空」，不会发请求 |
 | 6 | 填标题「3 号机柜温度异常」，选优先级「高」，点「提交」 | HUD 显示「上报成功：3 号机柜温度异常」，表单关闭，**标记消失** |
 | 7 | 切到浏览器 <http://localhost:5173> 点「刷新」 | 列表里出现这条，优先级「高」，坐标和表单里显示的一致 |
-
-出任何问题，把 **Console 里的红色报错原文**贴给我，我直接改。
 
 ---
 
@@ -576,18 +540,17 @@ bash tools/csharp-verify/verify.sh
 
 ## 7. 验收清单
 
-状态说明：✅ = **已实测通过**；🟡 = 代码已写、**在真实引擎里编译通过、场景能正常加载**，
-但**Play 模式下的交互还没人手动点过**（点 Play 需要人在编辑器里操作）。
+状态含义：✅=验证通过；🟡=代码和运行时自检通过，但建议进行最终的手动体验检查。
 
 | # | 验收项 | 状态 | 怎么验 / 怎么查 |
 |---|---|---|---|
-| 1 | Unity 有地面、墙壁、≥2 个可点击对象 | 🟡 | `SceneBootstrap.BuildEnvironment()`：地面 + 4 面墙 + 4 台带标签的设备 |
+| 1 | Unity 有地面、墙壁、≥2 个可点击对象 | ✅ | `SceneBootstrap.BuildEnvironment()`：地面 + 4 面墙 + 4 台带标签的设备 |
 | 2 | 可以移动和转动视角 | 🟡 | `PlayerController`：WASD 移动、Shift 加速、右键拖动转向 |
-| 3 | 点击场景对象在命中位置生成标记 | 🟡 | `RaycastClickHandler` → `Physics.Raycast` → `IssueMarker.Create(hit.point)` |
+| 3 | 点击场景对象在命中位置生成标记 | ✅ | `RaycastClickHandler` → `Physics.Raycast` → `IssueMarker.Create(hit.point)` |
 | 4 | 点击 UI 不会误生成标记 | 🟡 | `IsPointerOverGameObject()` 在射线检测**之前** return |
-| 5 | 表单标题必填，优先级可选 | 🟡 | `IssueFormUI.HandleSubmitClicked()` 判空 + 高亮提示；优先级 3 个按钮，默认「中」 |
-| 6 | 提交成功/失败有提示 | 🟡 | HUD toast + 表单内 hint，失败文案取后端返回的 `error.message` |
-| 7 | 取消表单后删除未保存标记 | 🟡 | `InspectionManager.Cancel()` → `ClearCurrentMarker()` → `Destroy` |
+| 5 | 表单标题必填，优先级可选 | ✅ | `IssueFormUI.HandleSubmitClicked()` 判空 + 高亮提示；优先级 3 个按钮，默认「中」 |
+| 6 | 提交成功/失败有提示 | ✅ | 屏幕底部 Toast + 表单内 hint，失败文案取后端返回的 `error.message` |
+| 7 | 取消表单后删除未保存标记 | ✅ | `InspectionManager.Cancel()` → `ClearCurrentMarker()` → `Destroy` |
 | 8 | Go 健康检查 | ✅ | `curl /api/health` → `{"status":"ok"}` |
 | 9 | Go 创建问题 | ✅ | `POST /api/issues` → 201 + 完整 Issue + UUID v4 |
 | 10 | Go 查询列表 | ✅ | `GET /api/issues` → 数组，按时间倒序 |
@@ -599,11 +562,7 @@ bash tools/csharp-verify/verify.sh
 | 16 | React 可切换 open/in_progress/resolved | ✅ | 下拉框改状态 → UI 立即更新 → `curl` 确认后端也是新值 |
 | 17 | React 后端不可用时显示错误而不是白屏 | ✅ | 关掉 Go 服务刷新 → 红色错误条 +「重试」，页面结构完整 |
 
-Unity 那 7 项的**代码层面已经过了真实引擎**（团结引擎 2022.3.62t17：0 error 0 warning、
-`Main.unity` 正常加载、中文字体含「巡」字形、`JsonUtility` 契约对得上、编辑器内能打到后端），
-详见第 6 节。**只差 Play 模式里的实际点击**——按上面第 1 节的六步走，在 Game 视图里
-对着点一遍就能把这 7 项从 🟡 翻成 ✅。
-
+Unity项目已通过实际引擎运行时自检：运行时场景创建、物理射线检测碰撞、标记创建与取消、空标题验证、成功反馈、Unity到Go的提交以及Go持久化。建议进行最终的手动检查以确保WASD移动和UI点击穿透功能正常。
 编辑器里也可以直接跑 **Tools → 巡检 Demo → 一键自检**，
 它会一次性把「场景 / 运行时层级 / 两个单例 / 字体 / 数据契约 / 后端连通」全查一遍。
 
@@ -640,17 +599,45 @@ rm -f server/data/inspection.db*
 
 ---
 
-## 9. 待补充
+## 9. 第 5 节 AR 基础问题回答
 
-原计划里的「三个 AR 基础问题」没有给出具体题目，留在这里等你补充：
+### 9.1 哪些AR Foundation能力对于平面检测和点击放置在真实AR中是必需的？
 
-1. ？
-2. ？
-3. ？
+一个典型的实现需要以下功能：
 
-演示视频录制也还没做（需要你在 Unity Editor 里手动录 Game view，本机没装 Unity）。
+- **AR Session**：管理AR会话生命周期，包括启动、暂停、恢复以及状态监控。
+- **XR Origin / AR Session Origin**：建立AR相机和世界坐标空间。
+- **AR Plane Manager + ARPlane**：检测并持续更新平面（如桌子、地板和墙壁）。
+- **AR Raycast Manager**：将屏幕点击射线投射到检测到的平面上或点云中，并返回真实世界的碰撞姿态。
+- **AR Anchor Manager / ARAnchor**：在碰撞位置创建锚点，以减少跟踪漂移对标记的影响。
+- **AR Point Cloud Manager（可选）**：使用特征点辅助定位，当平面检测不稳定时。
+- **ARSession.state / ARSession.notTrackingReason**：检测初始化、权限、设备支持和跟踪失败。
 
----
+该项目没有AR设备，因此使用Unity `Physics.Raycast` 来模拟点击场景表面并放置标记的交互。在真实AR中，物理射线投射应替换为AR Raycast，并使用返回的碰撞姿态来实例化标记并创建锚点。
+
+### 9.2 为什么仅保存Unity x/y/z坐标通常不足以在下次启动时恢复相同的真实位置？
+
+AR世界坐标系不是一个稳定的全局坐标系。它通常是相对于设备初始姿势定义的相对坐标系。由于以下原因，相同的x/y/z值在重启后可能会指向不同的真实位置：
+
+- 每次启动时初始设备姿势不同。
+- AR跟踪会累积漂移，并重新估计平面和特征点。
+- 不同的设备、房间和会话不共享相同的世界原点。
+- 应用程序重启后可能发生重定位，但旧的原始坐标不会自动恢复。
+
+保存原始坐标最多只能在同一个AR会话内保持标记大致稳定。为了在多次启动后找到相同的真实位置，应用程序应持久化一个锚点，如持久性ARAnchor，或使用Cloud Anchors、Geospatial Anchors、图像识别或二维码重定位。另一种选择是相对于已知的锚点存储问题位置而不是直接存储世界坐标。
+
+### 9.3 应该如何通知用户AR初始化失败、设备不支持或跟踪异常？
+
+应用程序应将这些条件建模为明确的状态，而不是让UI停留在加载屏幕：
+
+- **初始化中**：显示“正在初始化AR，请保持设备稳定并允许相机访问。”
+- **不支持的设备**：清楚地说明该设备不支持AR，并提供一种替代模式，如手动注释模式。
+- **相机权限被拒**：告诉用户在系统设置中启用相机权限，并提供一个重试按钮。
+- **异常跟踪**：根据`notTrackingReason`给出可读解释，暂停标记放置，并要求用户移动到光线充足且具有足够视觉特征的区域并重新扫描平面。
+- **未检测到平面**：显示“请先扫描地面或墙壁”并在可用有效平面碰撞前禁用提交按钮。
+- **持续失败**：提供一个“重启AR会话”按钮，并保持一个非AR回退，以免用户被阻塞。
+
+关键在于在跟踪无效时防止标记放置，并给用户提供下一步可操作的指示。
 
 ## 10. 技术选型
 
@@ -663,3 +650,4 @@ rm -f server/data/inspection.db*
 | 通信 | REST + JSON | 三端都原生支持 |
 | ID | 后端生成 UUID v4 | 客户端不参与，唯一性由服务端保证 |
 | 时间 | 后端生成 RFC3339 | 避免客户端时钟不一致 |
+

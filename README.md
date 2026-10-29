@@ -73,7 +73,7 @@ npm run dev
 
 本工程只用到 `UnityEngine` + `uGUI` + `UnityWebRequest` 这些标准 API，**一行代码都不用改**。
 
-唯一的差别是版本号：工程里 `ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`，团结引擎内部是 `2022.3.62t17` 这种格式，**打开时会自动升级一次**（正常行为，Console 里不会有红字）。
+唯一的差别是版本号：工程原本写的是 `2022.3.20f1`，团结引擎内部是 `2022.3.62t17` 这种格式，**第一次打开会自动升级一次**（正常行为，Console 里不会有红字）。升级后 `ProjectVersion.txt` 会被改写成 `2022.3.62t17` + `m_TuanjieEditorVersion: 1.11.0`。
 
 **要国际版 Unity 也行**：在同一个页面向下滚，有「2022.3.39f1」等条目，走中国镜像 `download.unitychina.cn` 下载。
 

@@ -49,29 +49,39 @@ npm run dev
 
 ### 终端 C：Unity 客户端
 
-**第 1 步：装 Unity（这一步只能你来做）**
+**第 1 步：装 Unity / 团结引擎（这一步只能你来做）**
 
-我没法替你装——要 Unity 账号、许可激活、Hub 图形界面。
+我没法替你装——要账号、许可激活、Hub 图形界面。
 
-1. 下载 [Unity Hub](https://unity.com/download)（macOS 版）。
-2. Hub → Install → 选 **Unity 2022.3 LTS**（Unity 6 也能开，工程会自动升级）。
-3. 等下载完（几个 GB）。
+> ⚠️ **从中国大陆访问 `unity.com/download`，页面已经是团结引擎的下载页了**
+> （标题「团结引擎最新版·官方下载」，canonical 指向 `unity.cn/tuanjie/releases`）。
+> 国际版 Unity 在国内改走中国镜像 `download.unitychina.cn`。
 
-> **模块别全选**：只要勾 macOS Editor 就够了。iOS / Android / 文档全勾会多下几十 GB。
->
-> 许可证选免费的 **Unity Personal** 就够（个人和小型团队免费）。
+**推荐：直接装团结引擎**（就在这个页面上，一键下载，省事）
 
-**关于团结引擎（Tuanjie Engine）**
+| | |
+|---|---|
+| 下载页 | <https://unity.com/download>（国内已被接管为团结引擎页）→ 找「团结引擎」的下载按钮 |
+| 版本 | **团结引擎 1.11.0**（当前最新）。别选 1.6.x，那是 `LTS for HMI` 智能座舱分支 |
+| Hub | 装的是**团结 Hub**（不是国际版 Unity Hub） |
+| 账号 | <https://developer.unity.cn> 单独注册 |
+| 许可证 | 免费版个人授权够用 |
 
-本工程**用国际版 Unity**。团结引擎是 Unity 中国基于 Unity 2022 LTS 定制的版本，主打微信/抖音小游戏、鸿蒙、智能座舱——这些本项目一个都用不上。
+**为什么推荐团结引擎而不是国际版 Unity**：
 
-不过团结引擎**也能直接跑这个工程、一行代码都不用改**：官方明确说 Unity 2022 LTS 的工程、资产、插件都能在团结引擎中运行，UI 和代码编写规则通用。本工程只用到 `UnityEngine` + `uGUI` + `UnityWebRequest` 这些标准 API，两边都有。
+团结引擎就是**基于 Unity 2022 LTS 定制**的，官方明确说「Unity 2022 LTS 支持的项目工程、资源商店购买的资产、插件，都可以在团结引擎中运行」，UI 和代码编写规则保持通用。
 
-区别只是：团结引擎版本号是 `1.x`，和 `ProjectSettings/ProjectVersion.txt` 里写的 `2022.3.20f1` 对不上，打开时会自动升级一次（正常行为）。要用团结引擎的话，升级完把版本号同步回工程即可。
+本工程只用到 `UnityEngine` + `uGUI` + `UnityWebRequest` 这些标准 API，**一行代码都不用改**。
 
-> 本工程的 `ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`。
-> 你的版本比它新 → Unity 自动升级工程，正常。
-> 比它旧 → Unity 会提示「工程由更高版本创建」，先升一下你的 Unity。
+唯一的差别是版本号：工程里 `ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`，团结引擎内部是 `2022.3.62t17` 这种格式，**打开时会自动升级一次**（正常行为，Console 里不会有红字）。
+
+**要国际版 Unity 也行**：在同一个页面向下滚，有「2022.3.39f1」等条目，走中国镜像 `download.unitychina.cn` 下载。
+
+**模块别全选**：只要 macOS Editor 就够了。iOS / Android / 文档全勾会多下几十 GB。
+另外你的 Mac 是 Apple Silicon，下载的是 `MacEditorInstallerArm64` 那个包。
+
+> 用国际版 Unity 时注意：`ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`。
+> 你的版本比它新 → 自动升级工程，正常；比它旧 → 提示「工程由更高版本创建」，先升一下。
 
 **第 2 步：打开工程**
 
@@ -88,6 +98,10 @@ Hub → Open → 选 `unity/InspectionDemo` 目录 → 选 2022.3 那个 Editor 
 > `InvalidOperationException: You are trying to read Input using the UnityEngine.Input class`，
 > 本工程用的是旧输入 API（`Input.GetKey` / `Input.GetMouseButton`）。
 > 选「Both」最保险。
+>
+> **团结引擎尤其要检查这一项**——它基于 Unity 2022.3 定制，可能预置了新版 Input System 包。
+> 本工程的 `Packages/manifest.json` 里**没有**声明 `com.unity.inputsystem`，
+> 所以正常情况下走旧输入；但如果打开工程后被自动加进来了，就要按上面改回来。
 
 **第 4 步：跑自检（推荐）**
 

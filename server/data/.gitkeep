@@ -1,0 +1,1 @@
+# 保留空目录：Go 服务启动时会自动创建 data/inspection.db

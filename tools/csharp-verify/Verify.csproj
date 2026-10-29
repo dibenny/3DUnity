@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Unity C# 编译检查工程（不是 Unity 工程的一部分，Unity 不会读它）。
+
+    目的：本机没有 Unity，没法用真正的 UnityEngine.dll 编译。
+    这里用 tools/csharp-verify/UnityStubs.cs 里手写的 Unity API 桩，
+    配合 Roslyn 对 Assets/Scripts 下的全部 C# 做一次真正的编译检查，
+    用来抓拼写错误、方法签名不匹配、类型不兼容这类问题。
+
+    用法：bash tools/csharp-verify/verify.sh
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Unity 2022.3 支持到 C# 9，这里锁 9.0 以免用上 Unity 编译不了的语法 -->
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <OutputType>Library</OutputType>
+    <AssemblyName>UnityCompileCheck</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- 桩里有些字段故意只声明不使用，避免噪音 -->
+    <NoWarn>CS0067;CS0169;CS0414;CS0649;CS1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="UnityStubs.cs" />
+    <Compile Include="../../unity/InspectionDemo/Assets/Scripts/**/*.cs" />
+  </ItemGroup>
+
+</Project>

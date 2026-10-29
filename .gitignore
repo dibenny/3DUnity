@@ -1,0 +1,52 @@
+# ---------- Unity ----------
+# Unity 工程的 Library/Temp/Logs 等都是本地生成物，不能进版本库。
+# 注意：Assets / Packages / ProjectSettings 三个目录必须保留。
+unity/**/Library/
+unity/**/Temp/
+unity/**/Logs/
+unity/**/Obj/
+unity/**/Build/
+unity/**/Builds/
+unity/**/UserSettings/
+unity/**/MemoryCaptures/
+unity/**/Recordings/
+unity/**/*.csproj
+unity/**/*.sln
+unity/**/*.user
+unity/**/*.pidb
+unity/**/*.booproj
+unity/**/*.svd
+unity/**/*.unityproj
+unity/**/*.pdb
+unity/**/*.apk
+unity/**/*.aab
+unity/**/*.unitypackage
+
+# ---------- Web ----------
+web/node_modules/
+web/dist/
+web/.vite/
+web/*.local
+web/.env.local
+web/.env.*.local
+
+# ---------- Go ----------
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+server/bin/
+server/server
+server/inspection-server
+
+# ---------- C# 编译检查工具 ----------
+tools/csharp-verify/bin/
+tools/csharp-verify/obj/
+
+# ---------- 操作系统 ----------
+.DS_Store
+Thumbs.db
+
+# ---------- 编辑器 ----------
+.vscode/
+.idea/
+*.swp

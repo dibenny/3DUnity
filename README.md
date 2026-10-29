@@ -57,6 +57,18 @@ npm run dev
 2. Hub → Install → 选 **Unity 2022.3 LTS**（Unity 6 也能开，工程会自动升级）。
 3. 等下载完（几个 GB）。
 
+> **模块别全选**：只要勾 macOS Editor 就够了。iOS / Android / 文档全勾会多下几十 GB。
+>
+> 许可证选免费的 **Unity Personal** 就够（个人和小型团队免费）。
+
+**关于团结引擎（Tuanjie Engine）**
+
+本工程**用国际版 Unity**。团结引擎是 Unity 中国基于 Unity 2022 LTS 定制的版本，主打微信/抖音小游戏、鸿蒙、智能座舱——这些本项目一个都用不上。
+
+不过团结引擎**也能直接跑这个工程、一行代码都不用改**：官方明确说 Unity 2022 LTS 的工程、资产、插件都能在团结引擎中运行，UI 和代码编写规则通用。本工程只用到 `UnityEngine` + `uGUI` + `UnityWebRequest` 这些标准 API，两边都有。
+
+区别只是：团结引擎版本号是 `1.x`，和 `ProjectSettings/ProjectVersion.txt` 里写的 `2022.3.20f1` 对不上，打开时会自动升级一次（正常行为）。要用团结引擎的话，升级完把版本号同步回工程即可。
+
 > 本工程的 `ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`。
 > 你的版本比它新 → Unity 自动升级工程，正常。
 > 比它旧 → Unity 会提示「工程由更高版本创建」，先升一下你的 Unity。

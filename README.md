@@ -121,6 +121,61 @@ open /Applications/Tuanjie/Tuanjie.app
 
 首次启动会要求登录并激活许可证（免费的个人版授权够用），包里的 `TuanjieLicensingClient.app` 就是干这个的。
 
+**第 2 步：激活许可证（团结引擎的账号体系跟国际版 Unity 不通用）**
+
+编辑器单独启动会报：
+
+```
+License error
+No valid Unity Editor license found. Please activate your license.
+```
+
+日志里能看到确切原因（`~/Library/Logs/Tuanjie/Tuanjie.Licensing.Client.log`）：
+
+```
+ulf update failed. Details: No ULF license found.
+assigned update failed. Details: Token not found in cache
+```
+
+也就是**缺一个 ULF 许可证文件 + 一个登录 token**。需要 **团结引擎账号**
+（<https://developer.unity.cn> 单独注册，**跟国际版 Unity ID 不能通用**）。
+
+**方案 A：团结 Hub（推荐，第一次用走这个）**
+
+1. 下载团结 Hub：<https://unity.cn/releases> → 「下载团结 Hub」（dmg，拖进 Applications 即可）
+2. 打开 Hub → 用团结引擎账号登录
+3. 左侧 **许可证 / License** → **获取个人版许可证** → 选「个人版」→ 激活
+4. 完事。之后启动编辑器就正常了
+
+> 个人版**免费、无名额限制**，但**通常只能激活 1 台设备**。
+> 提示「许可证上限」说明别处激活过 → 去 <https://license.tuanjiemanual.cn>「取消激活」再申请。
+
+**方案 B：不装 Hub，手动激活（Hub 出问题时用这个）**
+
+```bash
+# 1. 生成激活请求文件（.alf），会在当前目录生成 Tuanjie_v2022.3.alf
+cd ~/Downloads
+/Applications/Tuanjie/Tuanjie.app/Contents/MacOS/Tuanjie \
+  -batchmode -createManualActivationFile -logfile
+
+# 2. 浏览器打开 https://license.tuanjiemanual.cn/manual
+#    Browse 上传刚生成的 .alf → 选「个人版许可证」→ 提交
+#    下载 Tuanjie_v2022.3.ulf
+
+# 3. 导入许可证
+/Applications/Tuanjie/Tuanjie.app/Contents/MacOS/Tuanjie \
+  -batchmode -manualLicenseFile "$HOME/Downloads/Tuanjie_v2022.3.ulf" -logfile
+```
+
+**排查用的日志**
+
+| 内容 | 路径 |
+|---|---|
+| Editor 日志 | `~/Library/Logs/Tuanjie/Editor.log` |
+| 许可证客户端日志 | `~/Library/Logs/Tuanjie/Tuanjie.Licensing.Client.log` |
+| Hub 日志 | `~/Library/Application Support/TuanjieHub/logs` |
+| 许可证管理页 | <https://license.tuanjiemanual.cn> |
+
 > 用国际版 Unity 时注意：`ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`。
 > 你的版本比它新 → 自动升级工程，正常；比它旧 → 提示「工程由更高版本创建」，先升一下。
 

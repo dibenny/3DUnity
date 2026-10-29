@@ -49,9 +49,57 @@ npm run dev
 
 ### 终端 C：Unity 客户端
 
-1. Unity Hub 装 **Unity 2022.3 LTS**（Unity 6 也能开）。
-2. Open → 选 `unity/InspectionDemo` 目录。
-3. 打开 `Assets/Scenes/Main.unity`，按 **Play**。
+**第 1 步：装 Unity（这一步只能你来做）**
+
+我没法替你装——要 Unity 账号、许可激活、Hub 图形界面。
+
+1. 下载 [Unity Hub](https://unity.com/download)（macOS 版）。
+2. Hub → Install → 选 **Unity 2022.3 LTS**（Unity 6 也能开，工程会自动升级）。
+3. 等下载完（几个 GB）。
+
+> 本工程的 `ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`。
+> 你的版本比它新 → Unity 自动升级工程，正常。
+> 比它旧 → Unity 会提示「工程由更高版本创建」，先升一下你的 Unity。
+
+**第 2 步：打开工程**
+
+Hub → Open → 选 `unity/InspectionDemo` 目录 → 选 2022.3 那个 Editor 版本打开。
+
+第一次打开会做一次导入（Library 文件夹会很大，第一次可能要几分钟）。
+
+**第 3 步：确认输入系统设置（重要）**
+
+菜单 **Edit → Project Settings → Player → Other Settings → Active Input Handling**，
+必须选 **「Input Manager (Old)」** 或 **「Both」**。
+
+> 如果选的是纯「Input System Package (New)」，Unity 会报
+> `InvalidOperationException: You are trying to read Input using the UnityEngine.Input class`，
+> 本工程用的是旧输入 API（`Input.GetKey` / `Input.GetMouseButton`）。
+> 选「Both」最保险。
+
+**第 4 步：跑自检（推荐）**
+
+菜单 **Tools → 巡检 Demo → 一键自检**。
+
+它会一次性检查并打印报告：
+
+| 检查项 | 判据 |
+|---|---|
+| 场景 | 当前场景是 Main，且根物体里挂了 `SceneBootstrap` |
+| 运行时场景 | Play 模式下 Ground / Player / Camera / Canvas / EventSystem 都在 |
+| InspectionManager / IssueApiClient | 单例已初始化、状态正常 |
+| 中文字体 | 字体存在**且含中文字形**（这一步能提前发现「界面全是方块」） |
+| 数据契约 | 用一段真实 JSON 反序列化，验证字段名和 Go 完全对得上 |
+| 后端连通 | 实际请求 `/api/health` |
+
+编辑模式跑一次、按 Play 后再跑一次（运行时那几项只有 Play 下才有意义）。
+
+**万一 Main.unity 打不开**
+
+菜单 **Tools → 巡检 Demo → 重建场景** —— 会重新生成一个只含 `SceneBootstrap` 的空场景并覆盖保存。
+这是手写场景 YAML 万一有问题时的退路。
+
+**第 5 步：按 Play**
 
 场景里所有东西都是运行时生成的，**不用拖任何 Prefab、不用摆任何模型**。
 
@@ -66,6 +114,20 @@ npm run dev
 | 取消标记 | 在表单里点「取消」 |
 
 左下角 HUD 可以改后端地址（比如改成局域网 IP `http://192.168.1.102:8080`），点「连接」测一次连通性；「测试上报（固定数据）」按钮会绕过表单直接发一条固定数据，用来快速验证链路。
+
+**第 6 步：按这 7 条验一遍**
+
+| # | 做什么 | 应该看到 |
+|---|---|---|
+| 1 | 进入 Play | 灰蓝色地面、四面墙、4 台带中文标签的设备（机柜 A / 机柜 B / 配电箱 / 管道井） |
+| 2 | 按 WASD、右键拖动 | 能走能转 |
+| 3 | 左键点「机柜 A」 | 命中点冒出红色球体标记 + 细立杆，屏幕中间弹出表单，表单上显示「位置: x … / y … / z …」 |
+| 4 | 点右上角「刷新」或表单上的「取消」 | **场景里不会多出标记**（这条是 UI 拦截，如果这里多出标记就是 bug） |
+| 5 | 表单里标题留空，点「提交」 | 提示「标题不能为空」，不会发请求 |
+| 6 | 填标题「3 号机柜温度异常」，选优先级「高」，点「提交」 | HUD 显示「上报成功：3 号机柜温度异常」，表单关闭，**标记消失** |
+| 7 | 切到浏览器 <http://localhost:5173> 点「刷新」 | 列表里出现这条，优先级「高」，坐标和表单里显示的一致 |
+
+出任何问题，把 **Console 里的红色报错原文**贴给我，我直接改。
 
 ---
 
@@ -101,6 +163,7 @@ npm run dev
 │   ├── Assets/
 │   │   ├── Scenes/Main.unity      场景里只有一个挂了 SceneBootstrap 的空物体
 │   │   ├── Resources/             兜底材质（保证打包时 Standard 着色器不被剔除）
+│   │   ├── Editor/                Editor 工具：一键自检 / 重建场景（不进打包产物）
 │   │   └── Scripts/
 │   │       ├── Core/              GameConfig / FontProvider / UIFactory / MaterialFactory
 │   │       │                      SceneBootstrap / InspectionManager
@@ -121,6 +184,9 @@ npm run dev
 ├── AI_LOG.md
 └── .gitignore
 ```
+
+> Unity 端还有一组 Editor 工具在 `unity/InspectionDemo/Assets/Editor/InspectionDemoTools.cs`：
+> **Tools → 巡检 Demo → 一键自检** / **重建场景**。详见第 1 节第 4 步。
 
 ---
 

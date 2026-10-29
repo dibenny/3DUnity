@@ -70,6 +70,7 @@ namespace UnityEngine
         public T AddComponent<T>() where T : Component, new() { return new T(); }
         public T GetComponent<T>() { return default(T); }
         public static GameObject CreatePrimitive(PrimitiveType type) { return new GameObject(); }
+        public static GameObject Find(string name) { return null; }
     }
 
     public class Transform : Component, IEnumerable
@@ -158,6 +159,7 @@ namespace UnityEngine
     public static class Mathf
     {
         public const float PI = 3.14159265f;
+        public static bool Approximately(float a, float b) { return false; }
         public static float Sin(float f) { return 0f; }
         public static float Cos(float f) { return 0f; }
         public static float Abs(float f) { return f < 0 ? -f : f; }
@@ -269,6 +271,7 @@ namespace UnityEngine
     {
         public static Font CreateDynamicFontFromOSFont(string fontname, int size) { return null; }
         public static Font CreateDynamicFontFromOSFont(string[] fontnames, int size) { return null; }
+        public bool HasCharacter(char c) { return false; }
     }
 
     public class TextMesh : Component
@@ -352,6 +355,19 @@ namespace UnityEngine
         public static T FromJson<T>(string json) { return default(T); }
     }
 
+    public static class Application
+    {
+        public static string unityVersion { get { return ""; } }
+        public static bool isPlaying { get { return false; } }
+        public static bool isEditor { get { return true; } }
+        public static string dataPath { get { return ""; } }
+    }
+
+    public static class GameObjectUtility
+    {
+        public static GameObject GetMainGameObject() { return null; }
+    }
+
     [AttributeUsage(AttributeTargets.Field)]
     public class HeaderAttribute : Attribute { public HeaderAttribute(string header) { } }
 
@@ -368,6 +384,84 @@ namespace UnityEngine
 namespace UnityEngine.Rendering
 {
     public enum AmbientMode { Skybox = 0, Trilight = 1, Flat = 3, Custom = 4 }
+}
+
+namespace UnityEngine.SceneManagement
+{
+    using System.Collections.Generic;
+    using UnityEngine;
+
+    public struct Scene
+    {
+        public string name { get { return ""; } }
+        public bool IsValid() { return true; }
+        public bool isLoaded { get { return true; } }
+        public GameObject[] GetRootGameObjects() { return new GameObject[0]; }
+        public int GetRootGameObjectCount() { return 0; }
+    }
+
+    public static class SceneManager
+    {
+        public static Scene GetActiveScene() { return new Scene(); }
+        public static int sceneCount { get { return 1; } }
+    }
+}
+
+namespace UnityEditor
+{
+    using System;
+    using UnityEngine;
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class MenuItem : Attribute
+    {
+        public MenuItem(string itemName) { }
+        public MenuItem(string itemName, bool isValidateFunction) { }
+        public MenuItem(string itemName, bool isValidateFunction, int priority) { }
+    }
+
+    public static class EditorUtility
+    {
+        public static bool DisplayDialog(string title, string message, string ok) { return true; }
+        public static bool DisplayDialog(string title, string message, string ok, string cancel) { return true; }
+        public static void DisplayProgressBar(string title, string info, float progress) { }
+        public static void ClearProgressBar() { }
+    }
+
+    public static class AssetDatabase
+    {
+        public static void Refresh() { }
+        public static void SaveAssets() { }
+    }
+
+    public static class EditorApplication
+    {
+        public static bool isPlaying { get { return false; } }
+        public static bool isPlayingOrWillChangePlaymode { get { return false; } }
+    }
+
+    public static class Selection
+    {
+        public static GameObject activeGameObject { get; set; }
+        public static GameObject[] objects { get; set; }
+    }
+}
+
+namespace UnityEditor.SceneManagement
+{
+    using UnityEngine.SceneManagement;
+
+    public enum NewSceneSetup { EmptyScene, DefaultGameObjects }
+    public enum NewSceneMode { Single, Additive }
+
+    public static class EditorSceneManager
+    {
+        public static Scene NewScene(NewSceneSetup setup, NewSceneMode mode) { return new Scene(); }
+        public static Scene NewScene(NewSceneSetup setup) { return new Scene(); }
+        public static bool SaveScene(Scene scene) { return true; }
+        public static bool SaveScene(Scene scene, string destinationPath) { return true; }
+        public static Scene OpenScene(string path) { return new Scene(); }
+    }
 }
 
 namespace UnityEngine.Events

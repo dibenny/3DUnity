@@ -22,6 +22,12 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <!-- 桩里有些字段故意只声明不使用，避免噪音 -->
     <NoWarn>CS0067;CS0169;CS0414;CS0649;CS1591</NoWarn>
+    <!--
+      SYSLIB0014: WebRequest/HttpWebRequest 在 .NET 6+ 标记为过时。
+      Unity 用的 .NET Standard 2.1 profile 里它们没被标记过时，
+      所以在 Editor 工具里用 HttpWebRequest 同步请求是安全的，这里屏蔽掉这条警告。
+    -->
+    <NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
@@ -29,6 +35,7 @@
   <ItemGroup>
     <Compile Include="UnityStubs.cs" />
     <Compile Include="../../unity/InspectionDemo/Assets/Scripts/**/*.cs" />
+    <Compile Include="../../unity/InspectionDemo/Assets/Editor/**/*.cs" />
   </ItemGroup>
 
 </Project>

@@ -28,7 +28,7 @@ set -e
 echo "$OUTPUT"
 
 if [ $STATUS -eq 0 ]; then
-  FILE_COUNT=$(find "$ROOT/unity/InspectionDemo/Assets/Scripts" -name '*.cs' | wc -l | tr -d ' ')
+  FILE_COUNT=$(find "$ROOT/unity/InspectionDemo/Assets/Scripts" "$ROOT/unity/InspectionDemo/Assets/Editor" -name '*.cs' 2>/dev/null | wc -l | tr -d ' ')
   echo ""
   echo "✅ 编译通过：$FILE_COUNT 个 C# 文件，0 error 0 warning"
   echo "   注意：桩不是真 Unity，Unity API 的真实签名仍需在 Editor 里确认。"

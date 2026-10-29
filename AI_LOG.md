@@ -10,7 +10,7 @@
 
 从 0 搭一个三端闭环项目，核心原则是**先定数据契约，再打通端到端最小闭环，最后补交互和健壮性**。
 
-整个项目 11 个 Unity C# 文件、7 个 Go 文件、8 个前端文件，全部由 AI 生成，**但每个文件都经过人工审查和真实验证**（除 Unity 运行时部分，原因见第 6 节）。
+整个项目 13 个 Unity C# 文件（12 个运行时代码 + 1 个 Editor 工具）、7 个 Go 文件、8 个前端文件，全部由 AI 生成，**但每个文件都经过人工审查和真实验证**（除 Unity 运行时部分，原因见第 6 节）。
 
 ---
 
@@ -198,7 +198,7 @@ C# 这块是最容易翻车的：写 `public string CreatedAt;` 的话 `JsonUtil
 | `gofmt -l .` | 无输出 |
 | `tsc --noEmit` | 无报错 |
 | `vite build` | 成功，148 KB（gzip 48 KB） |
-| `tools/csharp-verify/verify.sh` | **12 个 C# 文件，0 error 0 warning**（warning 也当 error） |
+| `tools/csharp-verify/verify.sh` | **13 个 C# 文件，0 error 0 warning**（warning 也当 error） |
 
 ---
 
@@ -230,7 +230,7 @@ C# 这块是最容易翻车的：写 `public string CreatedAt;` 的话 `JsonUtil
 
 ```bash
 bash tools/csharp-verify/verify.sh
-# ✅ 编译通过：12 个 C# 文件，0 error 0 warning
+# ✅ 编译通过：13 个 C# 文件，0 error 0 warning
 ```
 
 **这个检查抓到了两个会让 Unity 直接编译失败的 bug：**
@@ -255,6 +255,20 @@ bash tools/csharp-verify/verify.sh
 ### 演示视频没录
 
 录制需要在 Unity Editor 里手动录 Game view，本机没有 Unity。README 第 9 节留了位置。
+
+### 为此补了两个 Editor 工具（`Assets/Editor/InspectionDemoTools.cs`）
+
+既然没法自己跑，就把「要盯的点」变成机器可查的：
+
+- **Tools → 巡检 Demo → 一键自检**
+  自动检查并打印报告：场景是否就绪、运行时层级（Ground/Player/Camera/Canvas/EventSystem）齐不齐、
+  两个单例有没有初始化、**字体含不含中文字形**（提前发现「界面全是方块」）、
+  **数据契约反序列化对不对得上**（提前发现 JsonUtility 字段名大小写写错导致静默丢字段）、
+  **后端 /api/health 实际连不连得上**。
+- **Tools → 巡检 Demo → 重建场景**
+  万一手写的 `Main.unity` YAML 打不开，两秒重新生成一个只含 `SceneBootstrap` 的场景。
+
+这两个工具本身也纳入了 Roslyn 编译检查（合计 13 个 C# 文件，0 error 0 warning）。
 
 ---
 
@@ -299,7 +313,7 @@ bash tools/csharp-verify/verify.sh
   - 写并调试 `gen_unity_meta.py`；
   - 逐条跑 13 项 curl 验收；
   - 浏览器里实测 React 的 5 个场景；
-  - 审查全部 11 个 C# 文件（本机无 Unity，做不了编译验证）；
+  - 审查全部 13 个 C# 文件，并用 Roslyn 编译验证（本机无 Unity，做不了真机运行验证）；
   - 修 3 个自己写出来的 bug：
     - `main.go` 里监听地址被拼了两遍（`http://127.0.0.1127.0.0.1:8080`）；
     - `uuid.go` 引用了不存在的 `randFallback()`；

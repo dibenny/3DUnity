@@ -80,6 +80,47 @@ npm run dev
 **模块别全选**：只要 macOS Editor 就够了。iOS / Android / 文档全勾会多下几十 GB。
 另外你的 Mac 是 Apple Silicon，下载的是 `MacEditorInstallerArm64` 那个包。
 
+**⚠️ macOS 15 (Sequoia) 上双击装不上？——团结引擎的 pkg 没做苹果公证**
+
+团结引擎 1.11.0 的 macOS 安装包**没有 stapled notarization ticket**，
+macOS 15.2 的 Gatekeeper 会直接拦截，表现为「无法打开，因为无法验证开发者」或「已损坏」。
+
+诊断命令（确认是不是这个原因）：
+
+```bash
+spctl -a -t install -vv ~/Downloads/Tuanjie.pkg
+# rejected
+# source=Unnotarized Developer ID   ← 就是它
+```
+
+**装法（推荐命令行，绕过 Gatekeeper 的 GUI 拦截）**：
+
+```bash
+# 1. 安装到 /Applications/Tuanjie/Tuanjie.app
+sudo installer -pkg ~/Downloads/Tuanjie.pkg -target /
+
+# 2. 如果装完打开 App 还是被拦，清掉隔离标记
+xattr -dr com.apple.quarantine /Applications/Tuanjie/Tuanjie.app
+
+# 3. 启动
+open /Applications/Tuanjie/Tuanjie.app
+```
+
+**不想用终端的话**：右键 `Tuanjie.pkg` → **打开** → 弹窗里点「打开」；
+或者第一次失败后去 **系统设置 → 隐私与安全性** → 底部「仍要打开」。
+
+> ❌ 不要用 `sudo spctl --master-disable`（全局关掉 Gatekeeper）。
+> 为一个安装包把系统安全降级不划算，用上面的办法就够。
+
+**不装 Hub 也能直接打开工程**：
+
+```bash
+/Applications/Tuanjie/Tuanjie.app/Contents/MacOS/Tuanjie \
+  -projectPath /Users/benny/3DUnity/unity/InspectionDemo
+```
+
+首次启动会要求登录并激活许可证（免费的个人版授权够用），包里的 `TuanjieLicensingClient.app` 就是干这个的。
+
 > 用国际版 Unity 时注意：`ProjectSettings/ProjectVersion.txt` 写的是 `2022.3.20f1`。
 > 你的版本比它新 → 自动升级工程，正常；比它旧 → 提示「工程由更高版本创建」，先升一下。
 

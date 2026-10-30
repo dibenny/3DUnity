@@ -23,7 +23,7 @@ namespace InspectionDemo.EditorTools
         const string ScenePath = "Assets/Scenes/Main.unity";
         static readonly StringBuilder R = new StringBuilder();
         static int pass, fail;
-        static double t0, submitT0, cancelCheckAt;
+        static double t0, submitT0, cancelCheckAt, focusCheckAt;
         static int stage;
 
         [MenuItem("Tools/Inspection Demo/Runtime E2E Self Check")]
@@ -52,13 +52,21 @@ namespace InspectionDemo.EditorTools
                     CheckMarker();
                     CheckTitle();
                     CheckSavedMarkers();
-                    stage = 2;
+                    focusCheckAt = EditorApplication.timeSinceStartup;
+                    stage = 3;
                 }
                 catch (Exception e)
                 {
                     Fail("runtime check exception", e.ToString());
                     Finish();
                 }
+                return;
+            }
+            if (stage == 3)
+            {
+                if (EditorApplication.timeSinceStartup - focusCheckAt < 0.2) return;
+                CheckTypingFocusAndCancel();
+                stage = 2;
                 return;
             }
             if (stage == 2)
@@ -179,7 +187,16 @@ namespace InspectionDemo.EditorTools
             bool form = m.formUI.IsVisible;
             Check("place marker", "marker=" + marker + " form=" + form + " state=" + m.State,
                 marker && form && m.State == InspectionState.FormOpen);
-            m.Cancel();
+
+        }
+
+        static void CheckTypingFocusAndCancel()
+        {
+            var manager = InspectionManager.Instance;
+            var player = UnityEngine.Object.FindObjectOfType<PlayerController>();
+            Check("typing focus detected", player == null ? "no player" : ("typing=" + player.IsTypingInInputField),
+                player != null && player.IsTypingInInputField);
+            if (manager != null) manager.Cancel();
             cancelCheckAt = EditorApplication.timeSinceStartup;
         }
 

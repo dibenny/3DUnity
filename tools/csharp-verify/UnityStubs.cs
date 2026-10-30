@@ -25,6 +25,7 @@ namespace UnityEngine
         public static void DestroyImmediate(Object obj) { }
         public static T Instantiate<T>(T original) where T : Object { return original; }
         public static T[] FindObjectsOfType<T>() where T : Object { return new T[0]; }
+        public static T FindObjectOfType<T>() where T : Object { return null; }
         public static bool operator ==(Object a, Object b) { return ReferenceEquals(a, b); }
         public static bool operator !=(Object a, Object b) { return !ReferenceEquals(a, b); }
         public override bool Equals(object other) { return ReferenceEquals(this, other); }
@@ -509,6 +510,8 @@ namespace UnityEngine.EventSystems
     public class EventSystem : UIBehaviour
     {
         public static EventSystem current { get { return null; } }
+        public GameObject currentSelectedGameObject { get { return null; } }
+        public void SetSelectedGameObject(GameObject selected) { }
         public bool IsPointerOverGameObject() { return false; }
         public bool IsPointerOverGameObject(int pointerId) { return false; }
     }
@@ -640,6 +643,7 @@ namespace UnityEngine.UI
         public Color caretColor { get; set; }
         public bool customCaretColor { get; set; }
         public int caretPosition { get; set; }
+        public bool isFocused { get { return false; } }
         public void MoveTextEnd(bool shift) { }
     }
 

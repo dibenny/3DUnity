@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace InspectionDemo
 {
@@ -44,8 +46,27 @@ namespace InspectionDemo
 
         private void Update()
         {
+            // Do not move or rotate while the user is typing in a form field.
+            if (IsTypingInInputField)
+            {
+                dragging = false;
+                return;
+            }
+
             HandleLook();
             HandleMove();
+        }
+
+        public bool IsTypingInInputField
+        {
+            get
+            {
+                if (EventSystem.current == null) return false;
+                var selected = EventSystem.current.currentSelectedGameObject;
+                if (selected == null || selected.activeInHierarchy == false) return false;
+                var input = selected.GetComponent<InputField>();
+                return input != null && input.isFocused;
+            }
         }
 
         private void HandleLook()

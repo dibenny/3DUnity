@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace InspectionDemo
@@ -141,6 +142,7 @@ namespace InspectionDemo
         public void Close()
         {
             if (root != null) root.SetActive(false);
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
         }
 
         /// <summary>清空表单内容。</summary>

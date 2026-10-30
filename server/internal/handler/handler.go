@@ -91,6 +91,15 @@ func (h *Handler) handleIssueSubPath(w http.ResponseWriter, r *http.Request) {
 	rest := strings.TrimPrefix(r.URL.Path, "/api/issues/")
 	parts := strings.Split(strings.Trim(rest, "/"), "/")
 
+	if len(parts) == 1 && parts[0] != "" {
+		if r.Method == http.MethodDelete {
+			h.deleteIssue(w, r, parts[0])
+			return
+		}
+		writeError(w, http.StatusMethodNotAllowed, model.CodeMethodNotAllowed, "only DELETE is supported")
+		return
+	}
+
 	if len(parts) != 2 || parts[0] == "" || parts[1] != "status" {
 		writeError(w, http.StatusNotFound, model.CodeNotFound, "接口不存在")
 		return

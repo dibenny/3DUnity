@@ -24,6 +24,7 @@ namespace UnityEngine
         public static void Destroy(Object obj) { }
         public static void DestroyImmediate(Object obj) { }
         public static T Instantiate<T>(T original) where T : Object { return original; }
+        public static T[] FindObjectsOfType<T>() where T : Object { return new T[0]; }
         public static bool operator ==(Object a, Object b) { return ReferenceEquals(a, b); }
         public static bool operator !=(Object a, Object b) { return !ReferenceEquals(a, b); }
         public override bool Equals(object other) { return ReferenceEquals(this, other); }
@@ -35,6 +36,7 @@ namespace UnityEngine
         public GameObject gameObject { get; }
         public Transform transform { get; }
         public T GetComponent<T>() { return default(T); }
+        public T GetComponentInParent<T>() { return default(T); }
     }
 
     public class Behaviour : Component
@@ -44,11 +46,14 @@ namespace UnityEngine
     }
 
     public class Coroutine : Object { }
+    public class YieldInstruction { }
+    public class WaitForSeconds : YieldInstruction { public WaitForSeconds(float seconds) { } }
 
     public class MonoBehaviour : Behaviour
     {
         public Coroutine StartCoroutine(IEnumerator routine) { return null; }
         public void StopCoroutine(IEnumerator routine) { }
+        public void StopCoroutine(Coroutine routine) { }
         public void StopAllCoroutines() { }
         public void Invoke(string methodName, float time) { }
         public void CancelInvoke() { }
@@ -128,6 +133,7 @@ namespace UnityEngine
         public static Vector3 forward { get { return new Vector3(0, 0, 1); } }
         public Vector3 normalized { get { return this; } }
         public float magnitude { get { return 0f; } }
+        public float sqrMagnitude { get { return 0f; } }
         public static Vector3 operator +(Vector3 a, Vector3 b) { return a; }
         public static Vector3 operator -(Vector3 a, Vector3 b) { return a; }
         public static Vector3 operator *(Vector3 a, float b) { return a; }
@@ -154,6 +160,7 @@ namespace UnityEngine
         public static Color black { get { return new Color(0, 0, 0); } }
         public static Color gray { get { return new Color(0.5f, 0.5f, 0.5f); } }
         public static Color clear { get { return new Color(0, 0, 0, 0); } }
+        public static Color operator *(Color c, float f) { return c; }
     }
 
     public static class Mathf
@@ -208,6 +215,13 @@ namespace UnityEngine
         public Vector3 point;
         public Vector3 normal;
         public float distance;
+        public Collider collider;
+    }
+
+    public static class Screen
+    {
+        public static int width { get { return 1280; } }
+        public static int height { get { return 720; } }
     }
 
     public class Camera : Behaviour
@@ -246,6 +260,7 @@ namespace UnityEngine
         public void SetColor(string name, Color value) { }
         public void SetFloat(string name, float value) { }
         public Color color { get; set; }
+        public Shader shader { get; set; }
     }
 
     public class Shader : Object
@@ -255,6 +270,7 @@ namespace UnityEngine
 
     public class Collider : Component { }
     public class BoxCollider : Collider { public Vector3 size { get; set; } public Vector3 center { get; set; } }
+    public class SphereCollider : Collider { public Vector3 center { get; set; } public float radius { get; set; } }
 
     public class CharacterController : Collider
     {
@@ -421,6 +437,15 @@ namespace UnityEditor
         public MenuItem(string itemName, bool isValidateFunction, int priority) { }
     }
 
+    [AttributeUsage(AttributeTargets.Class)]
+    public class InitializeOnLoadAttribute : Attribute { }
+
+    public static class SessionState
+    {
+        public static bool GetBool(string key, bool defaultValue) { return defaultValue; }
+        public static void SetBool(string key, bool value) { }
+    }
+
     public static class EditorUtility
     {
         public static bool DisplayDialog(string title, string message, string ok) { return true; }
@@ -439,6 +464,10 @@ namespace UnityEditor
     {
         public static bool isPlaying { get { return false; } }
         public static bool isPlayingOrWillChangePlaymode { get { return false; } }
+        public static double timeSinceStartup { get { return 0d; } }
+        public static Action update;
+        public static void EnterPlaymode() { }
+        public static void Exit(int returnValue) { }
     }
 
     public static class Selection

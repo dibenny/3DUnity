@@ -651,3 +651,54 @@ AR世界坐标系不是一个稳定的全局坐标系。它通常是相对于设
 | ID | 后端生成 UUID v4 | 客户端不参与，唯一性由服务端保证 |
 | 时间 | 后端生成 RFC3339 | 避免客户端时钟不一致 |
 
+## 12. 额外功能实现
+
+除了必需的工作流之外，还实现了以下可选功能：
+
+### 后端
+
+- 添加了 `DELETE /api/issues/{id}` 接口用于删除问题。
+- 添加了涵盖创建、列表、状态更新、删除、验证和缺失问题删除的 Go 处理程序测试用例。
+- 添加了一个多阶段的 `server/Dockerfile`，用于构建并运行带有持久化数据卷的 Go 服务。
+
+### Unity 客户端
+
+- 进入 Play 模式后从后端加载所有保存的问题。
+- 在保存的世界位置恢复保存的问题标记。
+- 可点击保存的标记以打开只读问题详情面板。
+- 标记颜色根据状态变化：开放、进行中或已解决。
+- 标记大小根据优先级变化：低、中或高。
+- 添加了设备编号和区域代码到场景设备标签。
+- 添加了一个 HUD 按钮用于从后端刷新保存的标记。
+- 保留了现有的临时标记工作流。
+
+### React 管理员
+
+- 添加了按标题或描述关键词搜索的功能。
+- 添加了状态和优先级过滤器。
+- 添加了包含 ID、标题、描述、优先级、状态、位置和时间戳的问题详情模态窗口。
+- 添加了带有确认对话框并同步到后端的问题删除功能。
+
+### 文档
+
+- 添加了 `docs/AR_MIGRATION.md`，描述了 AR Foundation / XR Simulation 迁移方法、所需组件、故障处理以及持久化考虑事项。
+
+> 候选人需要在最终提交前完成所需的演示视频和公共仓库/云驱动链接。
+
+### Docker and tests
+
+Build and run the backend container:
+
+```bash
+cd server
+docker build -t inspection-server .
+docker run --rm -p 8080:8080 -v "$(pwd)/data:/app/data" inspection-server
+```
+
+Run automated checks:
+
+```bash
+cd server && go test ./... && go vet ./...
+cd web && npm run build
+bash tools/csharp-verify/verify.sh
+```

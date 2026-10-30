@@ -125,6 +125,41 @@ namespace InspectionDemo
         }
 
         /// <summary>把 UnityWebRequest 的失败翻译成用户看得懂的中文。</summary>
+
+        /// <summary>Load all saved issues: GET /api/issues.</summary>
+        public IEnumerator GetIssues(Action<bool, string, IssueDto[]> onComplete)
+        {
+            using (var request = UnityWebRequest.Get(baseUrl + "/api/issues"))
+            {
+                request.timeout = 10;
+                yield return request.SendWebRequest();
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    IssueDto[] issues = new IssueDto[0];
+                    try
+                    {
+                        string json = request.downloadHandler.text;
+                        if (string.IsNullOrEmpty(json) == false)
+                        {
+                            var wrapped = "{\"items\":" + json + "}";
+                            var response = JsonUtility.FromJson<IssueListResponse>(wrapped);
+                            if (response != null && response.items != null) issues = response.items;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning("[IssueApiClient] parse issue list failed: " + e.Message);
+                    }
+                    onComplete(true, "ok", issues);
+                }
+                else
+                {
+                    onComplete(false, DescribeError(request), null);
+                }
+            }
+        }
+
         private static string DescribeError(UnityWebRequest request)
         {
             // 后端返回了标准错误体，优先用它自己的 message

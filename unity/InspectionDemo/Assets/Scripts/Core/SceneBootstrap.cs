@@ -21,6 +21,8 @@ namespace InspectionDemo
         private IssueApiClient apiClient;
         private InspectionManager manager;
         private IssueFormUI formUI;
+        private IssueDetailUI detailUI;
+        private int deviceCounter;
         private InputField serverInput;
         private Text healthText;
         private Text toastText;
@@ -121,6 +123,19 @@ namespace InspectionDemo
             textMesh.alignment = TextAlignment.Center;
             textMesh.color = new Color(0.90f, 0.91f, 0.90f);
 
+            deviceCounter++;
+            var codeGo = new GameObject("DeviceCode");
+            codeGo.transform.SetParent(go.transform, false);
+            codeGo.transform.localPosition = new Vector3(0f, size.y / 2f + 0.08f, 0f);
+            var codeMesh = codeGo.AddComponent<TextMesh>();
+            codeMesh.text = "DEV-" + deviceCounter.ToString("00") + "  AREA-" + (((deviceCounter + 1) / 2)).ToString("00");
+            codeMesh.font = FontProvider.Get();
+            codeMesh.fontSize = 48;
+            codeMesh.characterSize = 0.016f;
+            codeMesh.anchor = TextAnchor.UpperCenter;
+            codeMesh.alignment = TextAlignment.Center;
+            codeMesh.color = new Color(0.76f, 0.81f, 0.85f);
+
             return go;
         }
 
@@ -196,11 +211,19 @@ var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), t
             BuildHud(canvasGo.transform);
             BuildHintBar(canvasGo.transform);
 
+            var crosshair = UIFactory.CreatePanel("Crosshair", canvasGo.transform, new Color(1f, 1f, 1f, 0.55f));
+            UIFactory.Place(crosshair.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+                Vector2.zero, new Vector2(4f, 4f));
+
             formUI = gameObject.AddComponent<IssueFormUI>();
             formUI.Build(canvasGo.transform);
             BuildToast(canvasGo.transform);
+            detailUI = gameObject.AddComponent<IssueDetailUI>();
+            detailUI.Build(canvasGo.transform);
+
             manager.apiClient = apiClient;
             manager.formUI = formUI;
+            manager.detailUI = detailUI;
             manager.toastText = toastText;
             manager.toastPanel = toastPanel;
 
@@ -247,6 +270,12 @@ var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), t
             UIFactory.Place(testButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(14f, -114f), new Vector2(170f, 28f));
             testButton.onClick.AddListener(HandleTestClicked);
+
+            var refreshMarkersButton = UIFactory.CreateButton("RefreshMarkersButton", hud.transform,
+                "\u5237\u65b0\u6807\u8bb0", 13, GameConfig.ButtonColor, GameConfig.TextColor);
+            UIFactory.Place(refreshMarkersButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(192f, -114f), new Vector2(120f, 28f));
+            refreshMarkersButton.onClick.AddListener(HandleRefreshMarkersClicked);
         }
 
         private void BuildHintBar(Transform canvasTransform)
@@ -288,6 +317,11 @@ var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), t
         private void HandleTestClicked()
         {
             if (manager != null) manager.SubmitFixedTestIssue();
+        }
+
+        private void HandleRefreshMarkersClicked()
+        {
+            if (manager != null) manager.RefreshSavedIssues(true);
         }
 
         private void HandleFormSubmit(string title, string description, string priority)

@@ -80,4 +80,9 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
+
+  deleteIssue: (id: string) =>
+    request<void>(`/api/issues/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    }),
 }

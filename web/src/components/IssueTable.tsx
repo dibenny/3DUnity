@@ -6,7 +6,10 @@ import type { Issue, IssueStatus } from '../types'
 interface IssueTableProps {
   issues: Issue[]
   updatingId: string | null
+  deletingId: string | null
   onStatusChange: (id: string, status: IssueStatus) => void
+  onView: (issue: Issue) => void
+  onDelete: (issue: Issue) => void
 }
 
 function formatTime(iso: string): string {
@@ -17,21 +20,33 @@ function formatTime(iso: string): string {
 }
 
 function formatPosition(p: Issue['position']): string {
-  return `x ${p.x.toFixed(2)} · y ${p.y.toFixed(2)} · z ${p.z.toFixed(2)}`
+  return `x ${p.x.toFixed(2)} / y ${p.y.toFixed(2)} / z ${p.z.toFixed(2)}`
 }
 
-export function IssueTable({ issues, updatingId, onStatusChange }: IssueTableProps) {
+const T = {
+  title: '\u6807\u9898',
+  priority: '\u4f18\u5148\u7ea7',
+  status: '\u72b6\u6001',
+  position: '\u573a\u666f\u5750\u6807',
+  createdAt: '\u521b\u5efa\u65f6\u95f4',
+  actions: '\u64cd\u4f5c',
+  view: '\u67e5\u770b',
+  delete: '\u5220\u9664',
+  saving: '\u4fdd\u5b58\u4e2d',
+}
+
+export function IssueTable({ issues, updatingId, deletingId, onStatusChange, onView, onDelete }: IssueTableProps) {
   return (
     <div className="table-wrap">
       <table className="issue-table">
         <thead>
           <tr>
-            <th className="col-title">标题</th>
-            <th className="col-priority">优先级</th>
-            <th className="col-status">状态</th>
-            <th className="col-pos">场景坐标</th>
-            <th className="col-time">创建时间</th>
-            <th className="col-action">操作</th>
+            <th className="col-title">{T.title}</th>
+            <th className="col-priority">{T.priority}</th>
+            <th className="col-status">{T.status}</th>
+            <th className="col-pos">{T.position}</th>
+            <th className="col-time">{T.createdAt}</th>
+            <th className="col-action">{T.actions}</th>
           </tr>
         </thead>
         <tbody>
@@ -48,12 +63,20 @@ export function IssueTable({ issues, updatingId, onStatusChange }: IssueTablePro
               <td className="col-pos"><code>{formatPosition(issue.position)}</code></td>
               <td className="col-time">{formatTime(issue.createdAt)}</td>
               <td className="col-action">
-                <StatusSelect
-                  value={issue.status}
-                  disabled={updatingId === issue.id}
-                  onChange={(next) => onStatusChange(issue.id, next)}
-                />
-                {updatingId === issue.id && <span className="saving">保存中…</span>}
+                <div className="action-stack">
+                  <StatusSelect
+                    value={issue.status}
+                    disabled={updatingId === issue.id}
+                    onChange={(next) => onStatusChange(issue.id, next)}
+                  />
+                  {updatingId === issue.id && <span className="saving">{T.saving}...</span>}
+                  <div className="row-buttons">
+                    <button className="btn btn-small" onClick={() => onView(issue)}>{T.view}</button>
+                    <button className="btn btn-small btn-danger" disabled={deletingId === issue.id} onClick={() => onDelete(issue)}>
+                      {deletingId === issue.id ? '...' : T.delete}
+                    </button>
+                  </div>
+                </div>
               </td>
             </tr>
           ))}

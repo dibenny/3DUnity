@@ -159,3 +159,19 @@ FROM issues WHERE id = ?`
 	}
 	return it, nil
 }
+
+// Delete removes an issue by id.
+func (s *Store) Delete(id string) error {
+	res, err := s.db.Exec("DELETE FROM issues WHERE id = ?", id)
+	if err != nil {
+		return fmt.Errorf("delete issue failed: %w", err)
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("read delete result failed: %w", err)
+	}
+	if affected == 0 {
+		return ErrNotFound
+	}
+	return nil
+}

@@ -51,6 +51,7 @@ namespace InspectionDemo.EditorTools
                     CheckMaterials();
                     CheckMarker();
                     CheckTitle();
+                    CheckSavedMarkers();
                     stage = 2;
                 }
                 catch (Exception e)
@@ -138,6 +139,31 @@ namespace InspectionDemo.EditorTools
             Check("shader Unlit/Color", unlit == null ? "null" : unlit.name, unlit != null);
             Check("fallback material", template == null ? "null" : (template.shader == null ? "shader=null" : "shader=" + template.shader.name), template != null && template.shader != null);
             Check("ground material", renderer == null || renderer.sharedMaterial == null ? "null" : (renderer.sharedMaterial.shader == null ? "shader=null" : "shader=" + renderer.sharedMaterial.shader.name), renderer != null && renderer.sharedMaterial != null && renderer.sharedMaterial.shader != null);
+        }
+
+        static void CheckSavedMarkers()
+        {
+            var markers = UnityEngine.Object.FindObjectsOfType<IssueMarker>();
+            int saved = 0;
+            IssueMarker first = null;
+            for (int i = 0; i < markers.Length; i++)
+            {
+                if (markers[i].IsSaved)
+                {
+                    saved++;
+                    if (first == null) first = markers[i];
+                }
+            }
+            Check("saved markers loaded", "count=" + saved, saved > 0);
+            var manager = InspectionManager.Instance;
+            Check("issue detail UI", manager != null && manager.detailUI != null ? "present" : "null",
+                manager != null && manager.detailUI != null);
+            if (first != null && manager != null && manager.detailUI != null)
+            {
+                manager.ShowIssueDetail(first.Issue);
+                Check("issue detail content", first.Issue.title, manager.detailUI.IsVisible);
+                manager.detailUI.Hide();
+            }
         }
 
         static void CheckMarker()

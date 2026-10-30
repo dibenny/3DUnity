@@ -85,3 +85,13 @@ namespace InspectionDemo
         public ErrorBodyDto error;
     }
 }
+
+namespace InspectionDemo
+{
+    /// <summary>Wrapper used to parse a top-level JSON array with JsonUtility.</summary>
+    [System.Serializable]
+    public class IssueListResponse
+    {
+        public IssueDto[] items;
+    }
+}

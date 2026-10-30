@@ -51,6 +51,13 @@ namespace InspectionDemo
                 return;
             }
 
+            var marker = hit.collider.GetComponentInParent<IssueMarker>();
+            if (marker != null && marker.IsSaved)
+            {
+                manager.ShowIssueDetail(marker.Issue);
+                return;
+            }
+
             manager.PlaceMarker(hit.point, hit.normal);
         }
     }

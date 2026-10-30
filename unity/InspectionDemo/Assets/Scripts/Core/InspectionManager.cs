@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,15 +42,23 @@ namespace InspectionDemo
         public IssueFormUI formUI;
         public Text toastText;
         public GameObject toastPanel;
+        public IssueDetailUI detailUI;
 
         private IssueMarker currentMarker;
         private float stateResetTime;
         private bool resetStateLater;
         private Coroutine toastRoutine;
+        private readonly Dictionary<string, IssueMarker> savedMarkers = new Dictionary<string, IssueMarker>();
+        private bool loadingMarkers;
 
         private void Awake()
         {
             Instance = this;
+        }
+
+        private void Start()
+        {
+            RefreshSavedIssues(false);
         }
 
         private void Update()
@@ -172,6 +181,7 @@ namespace InspectionDemo
                 State = InspectionState.Success;
                 stateResetTime = Time.time + 1.5f;
                 resetStateLater = true;
+                RefreshSavedIssues(false);
 
                 // 提交成功：临时标记没用了，删掉
                 ClearCurrentMarker();
@@ -217,6 +227,64 @@ namespace InspectionDemo
         }
 
         /// <summary>在 HUD 上显示一行提示。</summary>
+        /// <summary>Show the selected saved issue in a detail panel.</summary>
+        public void ShowIssueDetail(IssueDto issue)
+        {
+            if (issue == null) return;
+            if (detailUI != null) detailUI.Show(issue);
+            else ShowToast(issue.title, false);
+        }
+
+        /// <summary>Reload saved markers from the backend.</summary>
+        public void RefreshSavedIssues(bool notify)
+        {
+            if (loadingMarkers) return;
+            StartCoroutine(LoadSavedIssues(notify));
+        }
+
+        private IEnumerator LoadSavedIssues(bool notify)
+        {
+            if (apiClient == null)
+            {
+                if (notify) ShowToast("API client is not ready", true);
+                yield break;
+            }
+
+            loadingMarkers = true;
+            IssueDto[] issues = null;
+            string message = null;
+            yield return apiClient.GetIssues((ok, error, list) =>
+            {
+                if (ok) issues = list;
+                else message = error;
+            });
+
+            if (issues == null)
+            {
+                loadingMarkers = false;
+                if (notify) ShowToast("Failed to load saved markers: " + message, true);
+                yield break;
+            }
+
+            ClearSavedMarkers();
+            for (int i = 0; i < issues.Length; i++)
+            {
+                var marker = IssueMarker.CreateSaved(issues[i]);
+                if (marker != null) savedMarkers[issues[i].id] = marker;
+            }
+            loadingMarkers = false;
+            if (notify) ShowToast("\u5df2\u52a0\u8f7d " + issues.Length + " \u4e2a\u5386\u53f2\u6807\u8bb0", false);
+        }
+
+        private void ClearSavedMarkers()
+        {
+            foreach (var marker in savedMarkers.Values)
+            {
+                if (marker != null) Destroy(marker.gameObject);
+            }
+            savedMarkers.Clear();
+        }
+
         public void ShowToast(string message, bool isError)
         {
             if (toastText == null) return;

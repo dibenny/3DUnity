@@ -107,3 +107,17 @@ func (h *Handler) updateStatus(w http.ResponseWriter, r *http.Request, id string
 
 	writeJSON(w, http.StatusOK, issue)
 }
+
+// deleteIssue removes an issue: DELETE /api/issues/{id}
+func (h *Handler) deleteIssue(w http.ResponseWriter, r *http.Request, id string) {
+	if err := h.store.Delete(id); err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			writeError(w, http.StatusNotFound, model.CodeNotFound, "issue not found")
+			return
+		}
+		log.Printf("delete issue failed: %v", err)
+		writeError(w, http.StatusInternalServerError, model.CodeInternal, "delete issue failed")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
